@@ -44,8 +44,8 @@ public:
 
     Pyin(const Pyin&) = delete;
     Pyin& operator=(const Pyin&) = delete;
-    Pyin(Pyin&&) = delete;
-    Pyin& operator=(Pyin&&) = delete;
+    Pyin(Pyin&&) = default;
+    Pyin& operator=(const Pyin&&) = delete;
     ~Pyin() = default;
 
     PyinResult process(const float* audioFrame);
