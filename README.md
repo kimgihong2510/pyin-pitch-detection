@@ -72,7 +72,7 @@ Now, test executables will appear in `build/tests/`.
 #### 1. test_sine_freq_sweep
 Measures pitch accuracy on a sine sweep. 
 ```bash
-$ build/tests/test_sine_freq_sweep
+$ ./build/tests/test_sine_freq_sweep
 Accuracy @ 0.1 semitone threshold = 47.1724%
 Accuracy @ 0.5 semitone threshold = 89.5172%
 Accuracy @ 1 semitone threshold = 94.8276%
@@ -88,14 +88,14 @@ The results are stored in: `tests/pyin_performance_results.csv`
 
 Before running this test, place the `MDB-melody-synth` folder inside `tests/`, then run:
 ```bash
-$ build/tests/test_enhanced_params_analysis <voicedTrust> <yinTrust> <voicedToUnvoicedProb> <unvoicedToVoicedProb>
+$ ./build/tests/test_enhanced_params_analysis <voicedTrust> <yinTrust> <voicedToUnvoicedProb> <unvoicedToVoicedProb>
 ```
 For easier parameter exploration, an automated Python script is provided: `tests/automated_enhanced_params_analysis.py`
 
 #### 3. test_real_time_factor
 Measures the real-time factor on [MDB-melody-synth] dataset.
 ```bash
-$ build/tests/test_real_time_factor 
+$ ./build/tests/test_real_time_factor 
 start experiment
 finished experiment
 =====================================================
