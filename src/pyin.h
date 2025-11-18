@@ -16,8 +16,8 @@ struct TransitionParams {
 };
     
 struct EnhancedParams {
-    double voicedTrust = 0.4;
-    double yinTrust = 0.999;
+    double voicedTrust = 0.5;
+    double yinTrust = 0.99;
     TransitionParams transitionParams{};
 };
 
