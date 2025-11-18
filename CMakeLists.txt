@@ -9,10 +9,12 @@ add_library(pyin_lib
     STATIC
         src/pyin.cpp)
 
+target_compile_features(pyin_lib 
+    PUBLIC cxx_std_14)
+
 target_include_directories(pyin_lib
     PUBLIC
-        ${CMAKE_CURRENT_LIST_DIR}/src
-)
+        ${CMAKE_CURRENT_LIST_DIR}/src)
 
 target_link_libraries(pyin_lib
     PUBLIC
@@ -20,6 +22,6 @@ target_link_libraries(pyin_lib
 
 if(PYIN_ENABLE_TESTS)
     enable_testing()
-    add_compile_options(-O3 -march=native)
+    add_compile_options(-O3 -march=native) # for reproducibility
     add_subdirectory(tests)
 endif()
