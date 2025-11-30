@@ -30,7 +30,8 @@ float minFreq = 100.0f; // Minimum frequency to be estimated
 // but using getDefaultFrameSize() is usually recommended for stable result. 
 int frameSize = pyin_pitch_detection::Pyin::getSmallestFrameSize(sampleRate, minFreq); 
 int frameSize = pyin_pitch_detection::Pyin::getDefaultFrameSize(sampleRate, minFreq); // RECOMMENDED
-pyin_pitch_detection::Pyin pyin(sampleRate, frameSize);
+pyin_pitch_detection::Pyin pyin{};
+pyin.prepareToPlay(sampleRate, frameSize);
 
 std::vector<float> audioBlock(frameSize);
 auto result = pyin.process(audioBlock.data());
@@ -50,7 +51,8 @@ auto enhancedParams = pyin_pitch_detection::Pyin::getDefaultEnhancedParams();
 
 // modify enhancedParams...
 
-pyin_pitch_detection::Pyin::pyin (sampleRate, frameSize, minFreq, maxFreq, enhancedParams);
+pyin_pitch_detection::Pyin::pyin{};
+pyin.prepareToPlay(sampleRate, frameSize, minFreq, maxFreq, enhancedParams);
 ```
 ## Tests
 ### Build Tests
