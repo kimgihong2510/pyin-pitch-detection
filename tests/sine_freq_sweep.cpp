@@ -21,7 +21,8 @@ int main(void) {
     std::vector<Result> results;
 
     int frameSize = Pyin::getSmallestFrameSize(kSampleRate, kMinFreq);
-    Pyin pitchDetector(kSampleRate, frameSize, kMinFreq, kMaxFreq);
+    Pyin pitchDetector{};
+    pitchDetector.prepareToPlay(kSampleRate, frameSize, kMinFreq, kMaxFreq);
     
     std::vector<float> input(frameSize);
 

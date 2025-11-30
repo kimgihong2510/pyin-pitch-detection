@@ -5,6 +5,7 @@
 #include <cassert>
 #include <cmath>
 #include <juce_dsp/juce_dsp.h>
+#include <memory>
 #include <limits>
 #include <utility>
 #include <vector>
@@ -85,29 +86,37 @@ namespace {
     }
 } // namespace
 
-Pyin::Pyin(double sampleRate, int frameSize, float minFreq, float maxFreq, EnhancedParams enhancedParams)
-    : mSampleRate(sampleRate), 
-    mFrameSize(frameSize), 
-    mMinFreq(minFreq),
-    mMaxFreq(maxFreq),
-    mMinPeriod(static_cast<int>(std::ceil(sampleRate / maxFreq))), 
-    mMaxPeriod(static_cast<int>(std::floor(sampleRate / minFreq))),
-    mNumBinsHMM(static_cast<int>(std::ceil(distanceInSemitone(minFreq, maxFreq)/kPitchBinWidth)+1)), 
-    mBuffer(frameSize*2, 0.0f),
-    mDiff(frameSize*2, 0.0f),
-    mHiddenState{std::vector<double>(mNumBinsHMM, 0.5 / mNumBinsHMM), std::vector<double>(mNumBinsHMM,  0.5 / mNumBinsHMM)},
-    mNextHiddenState{std::vector<double>(mNumBinsHMM, 0.0f), std::vector<double>(mNumBinsHMM, 0.0f)},
-    mPitchBins{std::vector<float>(mNumBinsHMM), std::vector<float>(mNumBinsHMM), std::vector<double>(mNumBinsHMM)},
-    mTransition(enhancedParams.transitionParams),
-    mVoicedTrust(enhancedParams.voicedTrust),
-    mYinTrust(enhancedParams.yinTrust),
-    mFFT(static_cast<int>(std::log2(frameSize)))
-{
-    // Check if parameters are assigned correctly
+void Pyin::prepareToPlay(double sampleRate, int frameSize, float minFreq, float maxFreq, EnhancedParams enhancedParams) {
     assert(sampleRate/2.0 > maxFreq && maxFreq > minFreq && minFreq > 0.0f); // maximum frequency < nyquist frequency
     assert(frameSize > 2 * mMaxPeriod); 
     assert(frameSize % 2 == 0);
+
+    mSampleRate = sampleRate;
+    mFrameSize = frameSize;
+    mMinFreq = minFreq;
+    mMaxFreq = maxFreq;
+    mMinPeriod = static_cast<int>(std::ceil(sampleRate / maxFreq)); 
+    mMaxPeriod = static_cast<int>(std::floor(sampleRate / minFreq));
+    mNumBinsHMM = static_cast<int>(std::ceil(distanceInSemitone(minFreq, maxFreq)/kPitchBinWidth)+1);
     
+    mBuffer.resize(frameSize * 2);
+    mDiff.resize(frameSize * 2);
+
+    mHiddenState[0].resize(mNumBinsHMM, 0.5 / mNumBinsHMM);
+    mHiddenState[1].resize(mNumBinsHMM, 0.5 / mNumBinsHMM); 
+
+    mNextHiddenState[0].resize(mNumBinsHMM);
+    mNextHiddenState[1].resize(mNumBinsHMM);
+
+    mPitchBins.bestFreq.resize(mNumBinsHMM);
+    mPitchBins.bestFreqProb.resize(mNumBinsHMM);
+    mPitchBins.binProb.resize(mNumBinsHMM);
+
+    mTransition = enhancedParams.transitionParams;
+    mVoicedTrust = enhancedParams.voicedTrust;
+    mYinTrust = enhancedParams.yinTrust;
+    mFFT = std::make_unique<juce::dsp::FFT>(static_cast<int>(std::log2(frameSize)));
+
     double probSum = mTransition.voicedToUnvoiced + mTransition.voicedToVoiced;
     const double eps = 1e-8;
     assert(std::abs(probSum - 1.0f) < eps); // sum of probability must equal to 1
@@ -123,6 +132,10 @@ Pyin::Pyin(double sampleRate, int frameSize, float minFreq, float maxFreq, Enhan
         mPitchBins.bestFreq[i] = minFreq;
         minFreq *= exp2(1.0f/12.0f * kPitchBinWidth);
     }
+}
+
+void Pyin::prepareToPlay(double sampleRate, int frameSize, float minFreq, float maxFreq) {
+    prepareToPlay(sampleRate, frameSize, minFreq, maxFreq, EnhancedParams{});
 }
 
 int Pyin::getSmallestFrameSize(double sampleRate, float minFreq){
@@ -157,13 +170,13 @@ PyinResult Pyin::process(const float* audioFrame) {
     std::copy(audioFrame, audioFrame + kernelSize, mBuffer.begin());
     std::fill(mBuffer.begin() + kernelSize, mBuffer.end(), 0.0f);
     
-    mFFT.performRealOnlyForwardTransform(mDiff.data());
-    mFFT.performRealOnlyForwardTransform(mBuffer.data());
+    mFFT->performRealOnlyForwardTransform(mDiff.data());
+    mFFT->performRealOnlyForwardTransform(mBuffer.data());
     
     conjugate(mDiff.data(), mFrameSize*2);
     multiply(mDiff.data(), mBuffer.data(), mFrameSize*2);
     
-    mFFT.performRealOnlyInverseTransform(mDiff.data());
+    mFFT->performRealOnlyInverseTransform(mDiff.data());
     
     // find the power terms and calculate difference function 
     // This corresponds to EQ. (7) from YIN paper

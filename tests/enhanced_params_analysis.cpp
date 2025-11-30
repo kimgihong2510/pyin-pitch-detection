@@ -99,7 +99,8 @@ int main(int argc, char* argv[]) {
             yinTrustProb,
             transitionParams
         };
-        pyin_pitch_detection::Pyin pyin(kSampleRate, frameSize, enhancedParams);
+        pyin_pitch_detection::Pyin pyin{};
+        pyin.prepareToPlay(kSampleRate, frameSize, 100.0f, 3000.0f, enhancedParams);
         
         // frame-by-frame analysis
         int frameStartIdx = 0;

@@ -46,7 +46,8 @@ int main(void) {
             inputAudio.addFrom(0, frameSize/2, rawInputAudio, c, 0, rawInputAudio.getNumSamples(), gain);
         
         // Instantiate pyin
-        pyin_pitch_detection::Pyin pyin(kSampleRate, frameSize);
+        pyin_pitch_detection::Pyin pyin{};
+        pyin.prepareToPlay(kSampleRate, frameSize);
         
         // frame-by-frame analysis
         auto start_time = std::chrono::high_resolution_clock::now();
