@@ -106,7 +106,7 @@ Pyin::Pyin(double sampleRate, int frameSize, float minFreq, float maxFreq, Enhan
     // Check if parameters are assigned correctly
     assert(sampleRate/2.0 > maxFreq && maxFreq > minFreq && minFreq > 0.0f); // maximum frequency < nyquist frequency
     assert(frameSize > 2 * mMaxPeriod); 
-    assert((frameSize & (frameSize-1)) == 0); // is power of two
+    assert(frameSize % 2 == 0);
     
     double probSum = mTransition.voicedToUnvoiced + mTransition.voicedToVoiced;
     const double eps = 1e-8;
